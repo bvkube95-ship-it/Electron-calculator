@@ -103,3 +103,7 @@ function evaluateExpression(expression: string): number {
     }
     return result
 }
+
+console.log(evaluateExpression("3+3*3"))
+console.log(evaluateExpression("3+3*3-2/1"))
+console.log(evaluateExpression("3+3*3-2/1+(4-2)"))
