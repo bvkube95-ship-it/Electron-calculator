@@ -1,4 +1,5 @@
 type Operator = "+" | "-" | "*" | "/"
+type StackOp = Operator | "(" | "u-" | "u+"
 
 function isOperator(value: string): value is Operator {
   return value === "+" || value === "-" || value === "*" || value === "/"
@@ -42,68 +43,125 @@ class Calculator {
 
 const calculator = new Calculator()
 
-function priority(operator: Operator): number {
-  return operator === "+" || operator === "-" ? 1 : 2
+function priority(operator: StackOp): number {
+  if (operator === "u-" || operator === "u+") return 3
+  if (operator === "*" || operator === "/") return 2
+  return 1
 }
 
 function evaluateExpression(expression: string): number {
   const tokens = expression.match(/\d+\.?\d*|[+\-*/()]/g)
+
   if (!tokens) {
     throw new Error("Invalid expression")
   }
 
   const numbersStack: number[] = []
-  const operatorsStack: (Operator | "(")[] = []
+  const operatorsStack: StackOp[] = []
+  let expectOperand = true
 
   function collapseOnce() {
     const op = operatorsStack.pop()
+
+    if (op === undefined || op === "(") {
+      throw new Error("Invalid expression")
+    }
+
+    if (op === "u-" || op === "u+") {
+      const a = numbersStack.pop()
+      if (a === undefined) {
+        throw new Error("Invalid expression")
+      }
+      numbersStack.push(op === "u-" ? -a : a)
+      return
+    }
+
     const b = numbersStack.pop()
     const a = numbersStack.pop()
-    if (op === undefined || op === "(" || a === undefined || b === undefined) {
+
+    if (a === undefined || b === undefined) {
       throw new Error("Invalid expression")
     }
+
     numbersStack.push(calculator.calculate(a, op, b))
-    }
+  }
 
-    for (const token of tokens) {
-      if (!isNaN(Number(token))) {
-        numbersStack.push(Number(token))
-      } else if (token === "(") {
-        operatorsStack.push("(")
-        } else if (token === ")") {
-          while (
-            operatorsStack.length > 0 &&
-            operatorsStack[operatorsStack.length - 1] !== "("
-          ) {
-            collapseOnce()
-          } 
-          if (operatorsStack.length === 0) {
-            throw new Error("Mismatched parentheses")
-          }
-          operatorsStack.pop() // Remove the "("
-        } else if (isOperator(token)) {
-          while (
-            operatorsStack.length > 0 &&
-            operatorsStack[operatorsStack.length - 1] !== "(" &&
-            priority(operatorsStack[operatorsStack.length - 1] as Operator) >= priority(token)
-          ) {
-            collapseOnce()
-          }
-          operatorsStack.push(token)
+  for (const token of tokens) {
+    if (!isNaN(Number(token))) {
+      if (!expectOperand) {
+        throw new Error("Invalid expression")
+      }
+      numbersStack.push(Number(token))
+      expectOperand = false
+
+    } else if (token === "(") {
+      if (!expectOperand) {
+        throw new Error("Invalid expression")
+      }
+      operatorsStack.push("(")
+
+    } else if (token === ")") {
+      if (expectOperand) {
+        throw new Error("Invalid expression")
+      }
+
+      while (
+        operatorsStack.length > 0 &&
+        operatorsStack[operatorsStack.length - 1] !== "("
+      ) {
+        collapseOnce()
+      }
+
+      if (operatorsStack.length === 0) {
+        throw new Error("Mismatched parentheses")
+      }
+
+      operatorsStack.pop()
+      expectOperand = false
+    } else if (isOperator(token)) {
+      if (expectOperand) {
+        if (token === "*" || token === "/") {
+          throw new Error("Invalid expression")
         }
-    }
 
-    while (operatorsStack.length > 0) {
-      collapseOnce()
-    }
+        const last = operatorsStack[operatorsStack.length - 1];
 
-    const result = numbersStack.pop()
-    if (result === undefined || numbersStack.length > 0) {
-      throw new Error("Invalid expression")
+        if (numbersStack.length === 0 || last === "(") {
+          operatorsStack.push(token === "-" ? "u-" : "u+");
+          continue;
+        }
+
+        throw new Error("Invalid expression");
+      }
+
+      while (
+        operatorsStack.length > 0 &&
+        operatorsStack[operatorsStack.length - 1] !== "(" &&
+        priority(operatorsStack[operatorsStack.length - 1]!) >= priority(token)
+      ) {
+        collapseOnce()
+      }
+      operatorsStack.push(token)
+      expectOperand = true
+    } else {
+      throw new Error(`Unknown token: ${token}`)
     }
-    return result
+  }
+
+  if (expectOperand) {
+    throw new Error("Invalid expression")
+  }
+
+  while (operatorsStack.length > 0) {
+    collapseOnce()
+  }
+
+  const result = numbersStack.pop()
+
+  if (result === undefined || numbersStack.length > 0) {
+    throw new Error("Invalid expression")
+  }
+
+  return result
 }
 
-console.log(evaluateExpression("3+3*3"))
-console.log(evaluateExpression("3+3*3-2/1"))
-console.log(evaluateExpression("3+3*3-2/1+(4-2)"))
