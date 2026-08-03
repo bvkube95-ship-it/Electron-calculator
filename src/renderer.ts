@@ -165,3 +165,25 @@ function evaluateExpression(expression: string): number {
   return result
 }
 
+const display = document.querySelector<HTMLInputElement>(".display")
+const buttons = document.querySelectorAll<HTMLButtonElement>(".btn")
+
+let currentExpression = ""
+
+function updateDisplay(value: string): void {
+  if (display === null) {
+    return
+  }
+  display.value = value === "" ? "0" : value
+}
+
+buttons.forEach((btn) => {
+  const value = btn.dataset["value"]
+
+  if (value !== undefined && !btn.classList.contains("operator")) {
+    btn.addEventListener("click", () => {
+      currentExpression += value
+      updateDisplay(currentExpression)
+    })
+  }
+})
