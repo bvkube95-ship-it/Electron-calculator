@@ -49,6 +49,8 @@ function priority(operator: StackOp): number {
   return 1
 }
 
+let expectOperand = true
+
 function evaluateExpression(expression: string): number {
   const tokens = expression.match(/\d+\.?\d*|[+\-*/()]/g)
 
@@ -58,7 +60,6 @@ function evaluateExpression(expression: string): number {
 
   const numbersStack: number[] = []
   const operatorsStack: StackOp[] = []
-  let expectOperand = true
 
   function collapseOnce() {
     const op = operatorsStack.pop()
@@ -169,6 +170,7 @@ const display = document.querySelector<HTMLInputElement>(".display")
 const buttons = document.querySelectorAll<HTMLButtonElement>(".btn")
 
 let currentExpression = ""
+let openParenCount = 0
 
 function updateDisplay(value: string): void {
   if (display === null) {
@@ -179,11 +181,7 @@ function updateDisplay(value: string): void {
 
 buttons.forEach((btn) => {
   const value = btn.dataset["value"]
-
-  if (value !== undefined && !btn.classList.contains("operator")) {
-    btn.addEventListener("click", () => {
-      currentExpression += value
-      updateDisplay(currentExpression)
-    })
-  }
+  const ction = btn.dataset["action"]
+  
 })
+
