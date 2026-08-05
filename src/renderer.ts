@@ -248,6 +248,22 @@ function canReplaceOperator(expression: string): boolean {
   return true
 }
 
+function isLastMinusUnary(expression: string): boolean {
+  const i = expression.length - 1
+
+  if (expression[i] !== "-") {
+    return false
+  }
+
+  if (i === 0) {
+    return true
+  }
+
+  const prev = expression[i - 1]!
+
+  return isOperator(prev) || prev === "("
+}
+
 buttons.forEach((btn) => {
   const value = btn.dataset["value"]
   const action = btn.dataset["action"]
@@ -257,28 +273,33 @@ buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
       // for dots
       if (value === ".") {
-        const lastChar = currentExpression[currentExpression.length -1]
+        const lastChar = currentExpression[currentExpression.length - 1]
+        // after operator or after "(", put 0 with dot
+        if (expectOperand) {
+          if (lastChar === "(" || currentExpression === "") {
+            currentExpression += "0."
+            expectOperand = false
+            updateDisplay(currentExpression)
+            return
+          }
 
-        if (
-          expectOperand &&
-          currentExpression !== "" &&
-          lastChar !== "("
-        ) {
+          if (lastChar !== undefined && isOperator(lastChar)) {
+            currentExpression += "0."
+            expectOperand = false
+            updateDisplay(currentExpression)
+            return
+          }
+
           return
         }
 
         if (!canAddDot(currentExpression)) {
-          return;
+          return
         }
 
-        if (expectOperand) {
-          currentExpression += "0";
-        }
-
-        currentExpression += ".";
-        expectOperand = false;
-        updateDisplay(currentExpression);
-        return;
+        currentExpression += "."
+        updateDisplay(currentExpression)
+        return
       }
       // for numbers
       if (expectOperand) {
@@ -318,16 +339,16 @@ buttons.forEach((btn) => {
     }
 
     if (expectOperand) {
-      
-      if (canReplaceOperator(currentExpression)) {
-        currentExpression 
-          = currentExpression.slice(0, -1) + value
 
-          updateDisplay(currentExpression)
-          return
+      if (isLastMinusUnary(currentExpression)) {
+        return
       }
 
-      if (value === "-" && lastChar === "-") {
+      if (canReplaceOperator(currentExpression)) {
+        currentExpression =
+          currentExpression.slice(0, -1) + value
+
+        updateDisplay(currentExpression)
         return
       }
 
