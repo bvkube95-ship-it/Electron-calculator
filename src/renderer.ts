@@ -1,5 +1,5 @@
 type Operator = "+" | "-" | "*" | "/"
-type StackOp = Operator | "(" | "u-" | "u+"
+type StackOp = Operator | "(" | "u-"
 
 function isOperator(value: string): value is Operator {
   return value === "+" || value === "-" || value === "*" || value === "/"
@@ -44,7 +44,7 @@ class Calculator {
 const calculator = new Calculator()
 
 function priority(operator: StackOp): number {
-  if (operator === "u-" || operator === "u+") return 3
+  if (operator === "u-") return 3
   if (operator === "*" || operator === "/") return 2
   return 1
 }
@@ -67,7 +67,7 @@ function evaluateExpression(expression: string): number {
       throw new Error("Invalid expression")
     }
 
-    if (op === "u-" || op === "u+") {
+    if (op === "u-") {
       const a = numbersStack.pop()
       if (a === undefined) {
         throw new Error("Invalid expression")
@@ -126,8 +126,8 @@ function evaluateExpression(expression: string): number {
 
         const last = operatorsStack[operatorsStack.length - 1];
 
-        if (numbersStack.length === 0 || last === "(") {
-          operatorsStack.push(token === "-" ? "u-" : "u+");
+        if (token === "-" && (numbersStack.length === 0 || last === "(")) {
+          operatorsStack.push("u-");
           continue;
         }
 
@@ -220,6 +220,34 @@ function canAddDot(expression: string): boolean {
   return true
 }
 
+function canReplaceOperator(expression: string): boolean {
+  const i = expression.length - 1
+
+  if (i < 0) {
+    return false
+  }
+
+  const lastChar = expression[i]!
+
+  if (!isOperator(lastChar)) {
+    return false
+  }
+
+  if (lastChar === "-") {
+    if (i === 0) {
+      return false
+    }
+
+    const prev = expression[i - 1]!
+
+    if (isOperator(prev) || prev === "(") {
+      return false
+    }
+  }
+
+  return true
+}
+
 buttons.forEach((btn) => {
   const value = btn.dataset["value"]
   const action = btn.dataset["action"]
@@ -229,6 +257,16 @@ buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
       // for dots
       if (value === ".") {
+        const lastChar = currentExpression[currentExpression.length -1]
+
+        if (
+          expectOperand &&
+          currentExpression !== "" &&
+          lastChar !== "("
+        ) {
+          return
+        }
+
         if (!canAddDot(currentExpression)) {
           return;
         }
@@ -273,23 +311,37 @@ buttons.forEach((btn) => {
   } else if (value !== undefined && btn.classList.contains("operator") && isOperator(value)) {
     // operators
     btn.addEventListener("click", () => {
-      if (expectOperand && (value === "*" || value === "/")) {
+    const lastChar = currentExpression[currentExpression.length - 1];
+
+    if (lastChar === ".") {
+      return;
+    }
+
+    if (expectOperand) {
+      
+      if (canReplaceOperator(currentExpression)) {
+        currentExpression 
+          = currentExpression.slice(0, -1) + value
+
+          updateDisplay(currentExpression)
+          return
+      }
+
+      if (value === "-" && lastChar === "-") {
         return
       }
 
-      if (expectOperand) {
-        const lastChar = currentExpression[currentExpression.length - 1]
-        if (lastChar !== undefined && isOperator(lastChar)) {
-          currentExpression = currentExpression.slice(0, -1)
-        }
-        currentExpression += value
-      } else {
-        currentExpression += value
-        expectOperand = true
+      if (value === "-") {
+        currentExpression += "-"
       }
 
-      updateDisplay(currentExpression)
-    })
+    } else {
+      currentExpression += value;
+      expectOperand = true;
+    }
+
+    updateDisplay(currentExpression);
+  });
   } else if (value === "(" && btn.classList.contains("paren")) {
     // open paren
     btn.addEventListener("click", () => {
