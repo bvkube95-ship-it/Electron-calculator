@@ -203,6 +203,23 @@ function recalcExpectOperand(expression: string): boolean {
   return false
 }
 
+function canAddDot(expression: string): boolean {
+  let i = expression.length - 1
+
+  while (
+    i >= 0 &&
+    !isOperator(expression[i]!) &&
+    expression[i] !== "(" &&
+    expression[i] !== ")"
+  ) {
+    if (expression[i] === ".") {
+      return false
+    }
+    i--
+  }
+  return true
+}
+
 buttons.forEach((btn) => {
   const value = btn.dataset["value"]
   const action = btn.dataset["action"]
@@ -210,10 +227,49 @@ buttons.forEach((btn) => {
   if (value !== undefined && !btn.classList.contains("operator") && !btn.classList.contains("paren")) {
     // numbers and dots
     btn.addEventListener("click", () => {
-      currentExpression += value
+      // for dots
+      if (value === ".") {
+        if (!canAddDot(currentExpression)) {
+          return;
+        }
+
+        if (expectOperand) {
+          currentExpression += "0";
+        }
+
+        currentExpression += ".";
+        expectOperand = false;
+        updateDisplay(currentExpression);
+        return;
+      }
+      // for numbers
+      if (expectOperand) {
+        currentExpression += value
+      } else {
+        let i = currentExpression.length - 1
+        while (
+          i >= 0 &&
+          !isOperator(currentExpression[i]!) &&
+          currentExpression[i] !== "(" &&
+          currentExpression[i] !== ")"
+        ) {
+          i--
+        }
+
+        const currentNumber = currentExpression.slice(i + 1)
+
+        // if current number is 0, replace it
+        if (currentNumber === "0") {
+          currentExpression =
+            currentExpression.slice(0, i + 1) + value
+        } else {
+          currentExpression += value
+        }
+      }
       expectOperand = false
       updateDisplay(currentExpression)
-    })
+    }
+  )
   } else if (value !== undefined && btn.classList.contains("operator") && isOperator(value)) {
     // operators
     btn.addEventListener("click", () => {
