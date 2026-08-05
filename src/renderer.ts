@@ -49,8 +49,6 @@ function priority(operator: StackOp): number {
   return 1
 }
 
-let expectOperand = true
-
 function evaluateExpression(expression: string): number {
   const tokens = expression.match(/\d+\.?\d*|[+\-*/()]/g)
 
@@ -58,6 +56,7 @@ function evaluateExpression(expression: string): number {
     throw new Error("Invalid expression")
   }
 
+  let expectOperand = true
   const numbersStack: number[] = []
   const operatorsStack: StackOp[] = []
 
@@ -166,10 +165,11 @@ function evaluateExpression(expression: string): number {
   return result
 }
 
-const display = document.querySelector<HTMLInputElement>(".display")
+const display = document.querySelector<HTMLInputElement>("#display")
 const buttons = document.querySelectorAll<HTMLButtonElement>(".btn")
 
 let currentExpression = ""
+let expectOperand = true
 let openParenCount = 0
 
 function updateDisplay(value: string): void {
@@ -179,9 +179,116 @@ function updateDisplay(value: string): void {
   display.value = value === "" ? "0" : value
 }
 
+function recalcParenCount(expression: string): number {
+  let count = 0
+  for (const char of expression) {
+    if (char === "(") {
+      count += 1
+    }
+    if (char === ")") {
+      count -= 1
+    }
+  }
+  return count
+}
+
+function recalcExpectOperand(expression: string): boolean {
+  if (expression === "") {
+    return true
+  }
+  const lastChar = expression[expression.length - 1]
+  if (lastChar === "(" || (lastChar !== undefined && isOperator(lastChar))) {
+    return true
+  }
+  return false
+}
+
 buttons.forEach((btn) => {
   const value = btn.dataset["value"]
-  const ction = btn.dataset["action"]
-  
-})
+  const action = btn.dataset["action"]
 
+  if (value !== undefined && !btn.classList.contains("operator") && !btn.classList.contains("paren")) {
+    // numbers and dots
+    btn.addEventListener("click", () => {
+      currentExpression += value
+      expectOperand = false
+      updateDisplay(currentExpression)
+    })
+  } else if (value !== undefined && btn.classList.contains("operator") && isOperator(value)) {
+    // operators
+    btn.addEventListener("click", () => {
+      if (expectOperand && (value === "*" || value === "/")) {
+        return
+      }
+
+      if (expectOperand) {
+        const lastChar = currentExpression[currentExpression.length - 1]
+        if (lastChar !== undefined && isOperator(lastChar)) {
+          currentExpression = currentExpression.slice(0, -1)
+        }
+        currentExpression += value
+      } else {
+        currentExpression += value
+        expectOperand = true
+      }
+
+      updateDisplay(currentExpression)
+    })
+  } else if (value === "(" && btn.classList.contains("paren")) {
+    // open paren
+    btn.addEventListener("click", () => {
+      if (!expectOperand) {
+        return
+      }
+      currentExpression += value
+      openParenCount += 1
+      updateDisplay(currentExpression)
+    })
+  } else if (value === ")" && btn.classList.contains("paren")) {
+    // close open
+    btn.addEventListener("click", () => {
+      if (expectOperand || openParenCount === 0) {
+        return
+      }
+      currentExpression += value
+      openParenCount -= 1
+      updateDisplay(currentExpression)
+    })
+  } else if (action === "clear") {
+    // C button
+    btn.addEventListener("click", () => {
+      currentExpression = ""
+      expectOperand = true
+      openParenCount = 0
+      updateDisplay(currentExpression)
+    })
+  } else if (action === "delete") {
+    // Delete button
+    btn.addEventListener("click", () => {
+      currentExpression = currentExpression.slice(0, -1)
+      openParenCount = recalcParenCount(currentExpression)
+      expectOperand = recalcExpectOperand(currentExpression)
+      updateDisplay(currentExpression)
+    })
+  } else if (action === "equals") {
+    // Equals
+    btn.addEventListener("click", () => {
+      if (expectOperand || currentExpression === "") {
+        return
+      }
+
+      try {
+        const result = evaluateExpression(currentExpression)
+        currentExpression = String(result)
+        expectOperand = false
+        openParenCount = 0
+        updateDisplay(currentExpression)
+      } catch (error) {
+        updateDisplay("Error")
+        currentExpression = ""
+        expectOperand = true
+        openParenCount = 0
+      }
+    })
+  }
+})
