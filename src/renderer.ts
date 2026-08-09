@@ -126,6 +126,10 @@ function evaluateExpression(expression: string): number {
 
         const last = operatorsStack[operatorsStack.length - 1];
 
+        if (token === "-" && last === "u-") {
+          throw new Error("Invalid expression");
+        }
+
         if (token === "-" && (numbersStack.length === 0 || last === "(")) {
           operatorsStack.push("u-");
           continue;
@@ -222,30 +226,14 @@ function canAddDot(expression: string): boolean {
 
 function canReplaceOperator(expression: string): boolean {
   const i = expression.length - 1
-
+ 
   if (i < 0) {
     return false
   }
-
+ 
   const lastChar = expression[i]!
-
-  if (!isOperator(lastChar)) {
-    return false
-  }
-
-  if (lastChar === "-") {
-    if (i === 0) {
-      return false
-    }
-
-    const prev = expression[i - 1]!
-
-    if (isOperator(prev) || prev === "(") {
-      return false
-    }
-  }
-
-  return true
+ 
+  return isOperator(lastChar)
 }
 
 function isLastMinusUnary(expression: string): boolean {
