@@ -409,3 +409,63 @@ buttons.forEach((btn) => {
     })
   }
 })
+
+function clickButtonByValue(value: string): void {
+  const button = document.querySelector<HTMLButtonElement>(`.btn[data-value="${value}"]`)
+  if (button !== null) {
+    button.click()
+  }
+}
+
+function clickButtonByAction(action: string): void {
+  const button = document.querySelector<HTMLButtonElement>(`.btn[data-action="${action}"]`)
+  if (button !== null) {
+    button.click()
+  }
+}
+
+document.addEventListener("keydown", (event) => {
+  const key = event.key
+
+  if (/^[0-9]$/.test(key)) {
+    event.preventDefault()
+    clickButtonByValue(key)
+    return
+  }
+
+  if (key === "." || key === ",") {
+    event.preventDefault()
+    clickButtonByValue(".")
+    return
+  }
+
+  if (key === "+" || key === "-" || key === "*" || key === "/") {
+    event.preventDefault()
+    clickButtonByValue(key)
+    return
+  }
+
+  if (key === "(" || key === ")") {
+    event.preventDefault()
+    clickButtonByValue(key)
+    return
+  }
+
+  if (key === "Enter" || key === "=") {
+    event.preventDefault()
+    clickButtonByAction("equals")
+    return
+  }
+
+  if (key === "Backspace") {
+    event.preventDefault()
+    clickButtonByAction("delete")
+    return
+  }
+
+  if (key === "Delete" || key === "Escape") {
+    event.preventDefault()
+    clickButtonByAction("clear")
+    return
+  }
+})
