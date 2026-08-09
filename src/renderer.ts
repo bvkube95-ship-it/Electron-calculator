@@ -355,7 +355,7 @@ buttons.forEach((btn) => {
     // open paren
     btn.addEventListener("click", () => {
       if (!expectOperand) {
-        return
+        currentExpression += "*"
       }
       currentExpression += value
       openParenCount += 1
