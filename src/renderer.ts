@@ -95,9 +95,9 @@ buttons.forEach((btn) => {
   if (value !== undefined && !btn.classList.contains("operator") && !btn.classList.contains("paren")) {
     // numbers and dots
     btn.addEventListener("click", () => {
+      const lastChar = currentExpression[currentExpression.length - 1]
       // for dots
       if (value === ".") {
-        const lastChar = currentExpression[currentExpression.length - 1]
         // after operator or after "(", put 0 with dot
         if (expectOperand) {
           if (lastChar === "(" || currentExpression === "") {
@@ -117,6 +117,12 @@ buttons.forEach((btn) => {
           return
         }
 
+        if (lastChar === ")") {
+          currentExpression += "*0."
+          updateDisplay(currentExpression)
+          return
+        }
+
         if (!canAddDot(currentExpression)) {
           return
         }
@@ -128,6 +134,8 @@ buttons.forEach((btn) => {
       // for numbers
       if (expectOperand) {
         currentExpression += value
+      } else if (lastChar === ")") { 
+        currentExpression += "*" + value
       } else {
         let i = currentExpression.length - 1
         while (
