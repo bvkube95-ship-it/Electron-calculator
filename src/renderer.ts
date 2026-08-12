@@ -39,6 +39,11 @@ function recalcExpectOperand(expression: string): boolean {
 }
 
 function canAddDot(expression: string): boolean {
+  const lastChar = expression[expression.length - 1]
+  if (lastChar === ")") {
+    return false
+  }
+
   let i = expression.length - 1
 
   while (
