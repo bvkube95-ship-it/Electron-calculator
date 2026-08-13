@@ -203,6 +203,7 @@ buttons.forEach((btn) => {
       }
       currentExpression += value
       openParenCount += 1
+      expectOperand = true
       updateDisplay(currentExpression)
     })
   } else if (value === ")" && btn.classList.contains("paren")) {
