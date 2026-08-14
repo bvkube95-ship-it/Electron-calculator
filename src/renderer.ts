@@ -214,7 +214,7 @@ buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const lastChar = currentExpression[currentExpression.length - 1]
       if (lastChar === ".") return
-      
+
       if (expectOperand || openParenCount === 0) {
         return
       }
@@ -314,7 +314,7 @@ document.addEventListener("keydown", (event) => {
     return
   }
 
-  if (key === "Delete" || key === "Escape") {
+  if (key === "Delete" || key === "Escape" || key === "c" || key === "C") {
     event.preventDefault()
     clickButtonByAction("clear")
     return
