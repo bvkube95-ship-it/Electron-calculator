@@ -198,6 +198,9 @@ buttons.forEach((btn) => {
   } else if (value === "(" && btn.classList.contains("paren")) {
     // open paren
     btn.addEventListener("click", () => {
+      const lastChar = currentExpression[currentExpression.length - 1]
+      if (lastChar === ".") return
+
       if (!expectOperand) {
         currentExpression += "*"
       }
@@ -209,6 +212,9 @@ buttons.forEach((btn) => {
   } else if (value === ")" && btn.classList.contains("paren")) {
     // close open
     btn.addEventListener("click", () => {
+      const lastChar = currentExpression[currentExpression.length - 1]
+      if (lastChar === ".") return
+      
       if (expectOperand || openParenCount === 0) {
         return
       }
