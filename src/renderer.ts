@@ -2,16 +2,26 @@ import { evaluateExpression, isOperator } from "./calculator.js"
 
 const display = document.querySelector<HTMLInputElement>("#display")
 const buttons = document.querySelectorAll<HTMLButtonElement>(".btn")
+const expressionTrail = document.querySelector<HTMLDivElement>("#expression")
 
 let currentExpression = ""
 let expectOperand = true
 let openParenCount = 0
+let showingResult = false
+
+function prettyExpression(expression: string): string {
+  return expression.replace(/\*/g, "×").replace(/\//g, "+").replace(/-/g, "-")
+}
 
 function updateDisplay(value: string): void {
   if (display === null) {
     return
   }
-  display.value = value === "" ? "0" : value
+  display.value = value === "" ? "0" : prettyExpression(value)
+  showingResult = false
+  if (expressionTrail !== null) {
+    expressionTrail.textContent = ""
+  }
 }
 
 function recalcParenCount(expression: string): number {
