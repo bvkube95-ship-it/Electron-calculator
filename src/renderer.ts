@@ -45,6 +45,22 @@ function groupThousands(value: string): string {
   return (negative ? "-" : "") + grouped + (decPart !== undefined ? "." + decPart : "") 
 }
 
+function formatNumber(raw: string): string {
+  const num = Number(raw)
+  if (!Number.isFinite(num)) {
+    return raw
+  }
+  // Beyind this magnitude toFixed gets unreliable/misleading either way
+  if (Math.abs(num) >= 1e15) {
+    return raw
+  }
+  if (settings.rpecision === "auto") {
+    return groupThousands(trimTrailingZeros(num.toFixed(10)))
+  }
+  const digits = Number(settings.precision)
+  return groupThousands(num.toFixed(digits))
+}
+
 function recalcParenCount(expression: string): number {
   let count = 0
   for (const char of expression) {
