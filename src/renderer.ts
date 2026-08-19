@@ -19,9 +19,30 @@ function updateDisplay(value: string): void {
   }
   display.value = value === "" ? "0" : prettyExpression(value)
   showingResult = false
+}
+
+function clearTrail(): void {
   if (expressionTrail !== null) {
     expressionTrail.textContent = ""
   }
+}
+
+// --- for auto result precision
+function trimTrailingZeros(value: string): string {
+  if(!value.includes(".")) {
+    return value
+  }
+  return value.replace(/0+$/, "").replace(/\.$/, "")
+}
+
+function groupThousands(value: string): string {
+  const negative = value.startsWith("-")
+  const body = negative ? value.slice(1) : value
+  const parts = body.split(".")
+  const intPart = parts[0] ?? "0"
+  const decPart = parts[1]
+  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
+  return (negative ? "-" : "") + grouped + (decPart !== undefined ? "." + decPart : "") 
 }
 
 function recalcParenCount(expression: string): number {
