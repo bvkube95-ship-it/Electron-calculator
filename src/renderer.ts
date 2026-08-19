@@ -1,4 +1,11 @@
 import { evaluateExpression, isOperator } from "./calculator.js"
+import {
+  canAddDot,
+  canReplaceOperator,
+  isLastMinusUnary,
+  recalcExpectOperand,
+  recalcParenCount
+} from "./renderer/expression.js"
 
 const display = document.querySelector<HTMLInputElement>("#display")
 const buttons = document.querySelectorAll<HTMLButtonElement>(".btn")
@@ -59,80 +66,6 @@ function formatNumber(raw: string): string {
   }
   const digits = Number(settings.precision)
   return groupThousands(num.toFixed(digits))
-}
-
-function recalcParenCount(expression: string): number {
-  let count = 0
-  for (const char of expression) {
-    if (char === "(") {
-      count += 1
-    }
-    if (char === ")") {
-      count -= 1
-    }
-  }
-  return count
-}
-
-function recalcExpectOperand(expression: string): boolean {
-  if (expression === "") {
-    return true
-  }
-  const lastChar = expression[expression.length - 1]
-  if (lastChar === "(" || (lastChar !== undefined && isOperator(lastChar))) {
-    return true
-  }
-  return false
-}
-
-function canAddDot(expression: string): boolean {
-  const lastChar = expression[expression.length - 1]
-  if (lastChar === ")") {
-    return false
-  }
-
-  let i = expression.length - 1
-
-  while (
-    i >= 0 &&
-    !isOperator(expression[i]!) &&
-    expression[i] !== "(" &&
-    expression[i] !== ")"
-  ) {
-    if (expression[i] === ".") {
-      return false
-    }
-    i--
-  }
-  return true
-}
-
-function canReplaceOperator(expression: string): boolean {
-  const i = expression.length - 1
- 
-  if (i < 0) {
-    return false
-  }
- 
-  const lastChar = expression[i]!
- 
-  return isOperator(lastChar)
-}
-
-function isLastMinusUnary(expression: string): boolean {
-  const i = expression.length - 1
-
-  if (expression[i] !== "-") {
-    return false
-  }
-
-  if (i === 0) {
-    return true
-  }
-
-  const prev = expression[i - 1]!
-
-  return isOperator(prev) || prev === "("
 }
 
 buttons.forEach((btn) => {
