@@ -6,6 +6,7 @@ import {
   recalcExpectOperand,
   recalcParenCount
 } from "./renderer/expression.js"
+import { formatNumber, prettyExpression } from "./renderer/formatting.js"
 
 const display = document.querySelector<HTMLInputElement>("#display")
 const buttons = document.querySelectorAll<HTMLButtonElement>(".btn")
@@ -15,10 +16,6 @@ let currentExpression = ""
 let expectOperand = true
 let openParenCount = 0
 let showingResult = false
-
-function prettyExpression(expression: string): string {
-  return expression.replace(/\*/g, "×").replace(/\//g, "+").replace(/-/g, "-")
-}
 
 function updateDisplay(value: string): void {
   if (display === null) {
@@ -32,40 +29,6 @@ function clearTrail(): void {
   if (expressionTrail !== null) {
     expressionTrail.textContent = ""
   }
-}
-
-// --- for auto result precision
-function trimTrailingZeros(value: string): string {
-  if(!value.includes(".")) {
-    return value
-  }
-  return value.replace(/0+$/, "").replace(/\.$/, "")
-}
-
-function groupThousands(value: string): string {
-  const negative = value.startsWith("-")
-  const body = negative ? value.slice(1) : value
-  const parts = body.split(".")
-  const intPart = parts[0] ?? "0"
-  const decPart = parts[1]
-  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-  return (negative ? "-" : "") + grouped + (decPart !== undefined ? "." + decPart : "") 
-}
-
-function formatNumber(raw: string): string {
-  const num = Number(raw)
-  if (!Number.isFinite(num)) {
-    return raw
-  }
-  // Beyind this magnitude toFixed gets unreliable/misleading either way
-  if (Math.abs(num) >= 1e15) {
-    return raw
-  }
-  if (settings.rpecision === "auto") {
-    return groupThousands(trimTrailingZeros(num.toFixed(10)))
-  }
-  const digits = Number(settings.precision)
-  return groupThousands(num.toFixed(digits))
 }
 
 buttons.forEach((btn) => {
