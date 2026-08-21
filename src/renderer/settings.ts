@@ -5,7 +5,7 @@ function hexToHsl(hex: string): { h: number, s: number, l: number } {
     const g = parseInt(hex.slice(3, 5), 16) / 255
     const b = parseInt(hex.slice(5, 7), 16) / 255
     const max = Math.max(r, g, b)
-    const min = Math.max(r, g, b)
+    const min = Math.min(r, g, b)
     const l = (max + min) / 2
     let h = 0
     let s = 0
@@ -70,4 +70,14 @@ interface AccentPalette {
   accent500: string
   accent400: string
   accent300: string
+}
+
+function buildCustomPalette(hex: string): AccentPalette {
+    const { h, s } = hexToHsl(hex)
+    return {
+        accent700: hslToHex(h, s, 22),
+        accent500: hslToHex(h, s, 50),
+        accent400: hslToHex(h, s, 62),
+        accent300: hslToHex(h, s, 80),
+    }
 }
