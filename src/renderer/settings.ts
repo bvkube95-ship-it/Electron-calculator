@@ -83,7 +83,7 @@ function buildCustomPalette(hex: string): AccentPalette {
 }
 
 export type Theme = "blue" | "red" | "violet" | "teal" | "custom"
-export interface settings {
+export interface Settings {
     precision: Precision
     theme: Theme
     customColor: string
@@ -114,7 +114,7 @@ export function buildCustomPaletteForRenderer(hex: string): AccentPalette {
 }
 
 export function loadSettings(): Settings {
-    const defaults: settings = { precision: "auto", theme: "blue", customColor: "#0057f7", savedAccents: [] }
+    const defaults: Settings = { precision: "auto", theme: "blue", customColor: "#0057f7", savedAccents: [] }
     try {
         const raw = localStorage.getItem(SETTINGS_KEY)
         if (raw === null) {
@@ -125,7 +125,7 @@ export function loadSettings(): Settings {
             ? parsed.savedAccents.filter(isValidHexColor).slice(0, MAX_SAVED_ACCENTS)
             : defaults.savedAccents
         return {
-            presicion: isValidPrecision(parsed.precision) ? parsed.precision : defaults.precision,
+            precision: isValidPrecision(parsed.precision) ? parsed.precision : defaults.precision,
             theme: isValidTheme(parsed.theme) ? parsed.theme : defaults.theme,
             customColor: isValidHexColor(parsed.customColor) ? parsed.customColor : defaults.customColor,
             savedAccents
