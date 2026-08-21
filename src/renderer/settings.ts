@@ -17,7 +17,7 @@ function hexToHsl(hex: string): { h: number, s: number, l: number } {
         if (max === r) {
             h = (g - b) / d + (g < b ? 6 : 0)
         } else if (max === g) {
-            h = (b - r) / d + (g < b ? 6 : 0)
+            h = (b - r) / d + 2
         } else {
             h = (r - g) / d + 4
         }
