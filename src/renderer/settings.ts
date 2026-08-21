@@ -134,3 +134,11 @@ export function loadSettings(): Settings {
         return defaults
     }
 }
+
+export function saveFromSettings(settings: Settings): void {
+    try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+    } catch {
+        // Storage unavailable (e.g. restricted profile) — settings just won't persist.
+    }
+}
