@@ -81,3 +81,56 @@ function buildCustomPalette(hex: string): AccentPalette {
         accent300: hslToHex(h, s, 80),
     }
 }
+
+export type Theme = "blue" | "red" | "violet" | "teal" | "custom"
+export interface settings {
+    precision: Precision
+    theme: Theme
+    customColor: string
+    savedAccents: string[]
+}
+
+export const SETTINGS_KEY = "nyx-calc-settings"
+export const MAX_SAVED_ACCENTS = 12
+
+function isValidPrecision(value: unknown): value is Precision {
+    return value === "auto" || (typeof value === "string" && /^[0-9]$/.test(value))
+}
+
+function isValidTheme(value: unknown): value is Theme {
+    return value === "blue" ||
+           value === "red" ||
+           value === "violet" ||
+           value === "teal" ||
+           value === "custom"
+}
+
+export function isValidHexColor(value: unknown): value is string {
+    return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value)
+}
+
+export function buildCustomPaletteForRenderer(hex: string): AccentPalette {
+    return buildCustomPalette(hex)
+}
+
+export function loadSettings(): Settings {
+    const defaults: settings = { precision: "auto", theme: "blue", customColor: "#0057f7", savedAccents: [] }
+    try {
+        const raw = localStorage.getItem(SETTINGS_KEY)
+        if (raw === null) {
+            return defaults
+        }
+        const parsed = JSON.parse(raw) as Partial<Settings>
+        const savedAccents = Array.isArray(parsed.savedAccents)
+            ? parsed.savedAccents.filter(isValidHexColor).slice(0, MAX_SAVED_ACCENTS)
+            : defaults.savedAccents
+        return {
+            presicion: isValidPrecision(parsed.precision) ? parsed.precision : defaults.precision,
+            theme: isValidTheme(parsed.theme) ? parsed.theme : defaults.theme,
+            customColor: isValidHexColor(parsed.customColor) ? parsed.customColor : defaults.customColor,
+            savedAccents
+        }
+    } catch {
+        return defaults
+    }
+}
