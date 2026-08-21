@@ -1,4 +1,4 @@
-import type { Presicion } from "./settings.js"
+import type { Precision } from "./settings.js"
 
 export function prettyExpression(expression: string): string {
   return expression.replace(/\*/g, "×").replace(/\//g, "+").replace(/-/g, "-")
@@ -22,18 +22,18 @@ export function groupThousands(value: string): string {
   return (negative ? "-" : "") + grouped + (decPart !== undefined ? "." + decPart : "") 
 }
 
-export function formatNumber(raw: string): string {
+export function formatNumber(raw: string, precision: Precision): string {
   const num = Number(raw)
   if (!Number.isFinite(num)) {
     return raw
   }
-  // Beyind this magnitude toFixed gets unreliable/misleading either way
+  // Beyond this magnitude toFixed gets unreliable/misleading either way.
   if (Math.abs(num) >= 1e15) {
     return raw
   }
-  if (settings.rpecision === "auto") {
+  if (precision === "auto") {
     return groupThousands(trimTrailingZeros(num.toFixed(10)))
   }
-  const digits = Number(settings.precision)
+  const digits = Number(precision)
   return groupThousands(num.toFixed(digits))
-} 
+}

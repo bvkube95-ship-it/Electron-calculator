@@ -26,5 +26,5 @@
     "moduleDetection": "auto",
     "skipLibCheck": true
   },
-  "include": ["src/renderer.ts", "src/calculator.ts"]
+  "include": ["src/**/*.ts"]
 }
