@@ -1,12 +1,11 @@
 import type { Precision } from "./settings.js"
 
-export function prettyExpression(expression: string): string {
-  return expression.replace(/\*/g, "×").replace(/\//g, "+").replace(/-/g, "-")
+export function prettyExpression(expr: string): string {
+  return expr.replace(/\*/g, "×").replace(/\//g, "÷").replace(/-/g, "−")
 }
 
-// --- for auto result precision
 export function trimTrailingZeros(value: string): string {
-  if(!value.includes(".")) {
+  if (!value.includes(".")) {
     return value
   }
   return value.replace(/0+$/, "").replace(/\.$/, "")
@@ -19,7 +18,7 @@ export function groupThousands(value: string): string {
   const intPart = parts[0] ?? "0"
   const decPart = parts[1]
   const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-  return (negative ? "-" : "") + grouped + (decPart !== undefined ? "." + decPart : "") 
+  return (negative ? "-" : "") + grouped + (decPart !== undefined ? "." + decPart : "")
 }
 
 export function formatNumber(raw: string, precision: Precision): string {

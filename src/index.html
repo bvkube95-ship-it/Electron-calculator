@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>NYX — Field Calculator</title>
+  <title>NOX — Field Calculator</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app" data-theme="blue">
 
+    <!-- ===== HERO / BRAND HEADER ===== -->
     <header class="hero">
       <svg class="hero__art" viewBox="0 0 430 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
         <defs>
@@ -85,7 +86,7 @@
       </svg>
 
       <div class="hero__brand">
-        <span class="hero__mark">NYX</span>
+        <span class="hero__mark">NOX</span>
         <span class="hero__sub">Field Calculator</span>
       </div>
     </header>
@@ -154,11 +155,20 @@
 
           <div class="settings__row">
             <span class="settings__label">Result precision</span>
-            <div class="settings__options" data-setting="precision">
-              <button type="button" class="chip" data-value="auto">Auto</button>
-              <button type="button" class="chip" data-value="2">2</button>
-              <button type="button" class="chip" data-value="4">4</button>
-              <button type="button" class="chip" data-value="6">6</button>
+            <div class="precision-select-wrap">
+              <select class="precision-select" id="precisionSelect" aria-label="Result precision">
+                <option value="auto">Auto</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+              </select>
             </div>
           </div>
 
@@ -169,8 +179,17 @@
               <button type="button" class="chip chip--red" data-value="red" aria-label="Red"></button>
               <button type="button" class="chip chip--violet" data-value="violet" aria-label="Violet"></button>
               <button type="button" class="chip chip--teal" data-value="teal" aria-label="Teal"></button>
+              <label class="chip chip--custom" id="customColorLabel">
+                <input type="color" id="customColorInput" value="#0057f7" aria-label="Custom color" />
+              </label>
             </div>
           </div>
+
+          <div class="settings__row">
+            <span class="settings__label">Saved accents</span>
+            <button type="button" class="chip chip--add" id="saveAccentBtn" aria-label="Save current color" title="Save current color">+</button>
+          </div>
+          <div class="saved-accents" id="savedAccentsList"></div>
         </div>
       </section>
     </main>
@@ -192,7 +211,7 @@
           <circle cx="20" cy="20" r="2.4" fill="#7fd8ff" />
         </svg>
         <div class="footer__unit">
-          <span class="footer__unit-name">NYX Unit</span>
+          <span class="footer__unit-name">NOX Unit</span>
           <span class="footer__unit-sub">Field Computation Division</span>
         </div>
       </div>

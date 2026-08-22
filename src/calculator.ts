@@ -52,6 +52,10 @@ function priority(operator: StackOp): number {
 export function evaluateExpression(expression: string): number {
   const tokens = expression.match(/\d+\.?\d*|[+\-*/()]/g)
 
+  if (!/^[\d+\-*/().]+$/.test(expression)) {
+  throw new Error("Invalid expression")
+  }
+
   if (!tokens) {
     throw new Error("Invalid expression")
   }

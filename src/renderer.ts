@@ -4,7 +4,7 @@ import {
   canReplaceOperator,
   isLastMinusUnary,
   recalcExpectOperand,
-  recalcParenCount
+  recalcParenCount,
 } from "./renderer/expression.js"
 import { formatNumber, prettyExpression } from "./renderer/formatting.js"
 import {
@@ -14,8 +14,9 @@ import {
   saveSettings,
   type Precision,
   type Settings,
-  type Theme
+  type Theme,
 } from "./renderer/settings.js"
+import { loadHistory, saveHistory, type HistoryEntry } from "./renderer/history.js"
 
 const display = document.querySelector<HTMLInputElement>("#display")
 const buttons = document.querySelectorAll<HTMLButtonElement>(".btn")
@@ -39,6 +40,228 @@ function clearTrail(): void {
     expressionTrail.textContent = ""
   }
 }
+
+// Settings (persisted to localStorage)
+function applySettings(): void {
+  const app = document.querySelector<HTMLElement>(".app")
+  app?.setAttribute("data-theme", settings.theme)
+
+  if (settings.theme === "custom") {
+    const palette = buildCustomPaletteForRenderer(settings.customColor)
+    app?.style.setProperty("--accent-700", palette.accent700)
+    app?.style.setProperty("--accent-500", palette.accent500)
+    app?.style.setProperty("--accent-300", palette.accent300)
+  } else {
+    // Back on a hand-tuned preset — let its CSS rule take over again.
+    app?.style.removeProperty("--accent-700")
+    app?.style.removeProperty("--accent-500")
+    app?.style.removeProperty("--accent-300")
+  }
+
+  document
+    .querySelectorAll<HTMLButtonElement>('.settings__options[data-setting="theme"] button.chip')
+    .forEach((chip) => {
+      chip.classList.toggle("is-active", chip.dataset["value"] === settings.theme)
+    })
+
+  const customLabel = document.querySelector<HTMLElement>("#customColorLabel")
+  customLabel?.classList.toggle("is-active", settings.theme === "custom")
+  customLabel?.style.setProperty("background", settings.theme === "custom" ? settings.customColor : "")
+
+  const customColorInput = document.querySelector<HTMLInputElement>("#customColorInput")
+  if (customColorInput !== null) {
+    customColorInput.value = settings.customColor
+  }
+
+  const precisionSelect = document.querySelector<HTMLSelectElement>("#precisionSelect")
+  if (precisionSelect !== null) {
+    precisionSelect.value = settings.precision
+  }
+}
+
+function applyCustomColor(hex: string): void {
+  settings = { ...settings, theme: "custom", customColor: hex }
+  saveSettings(settings)
+  applySettings()
+  renderSavedAccents()
+}
+
+function renderSavedAccents(): void {
+  const list = document.querySelector<HTMLDivElement>("#savedAccentsList")
+  if (list === null) {
+    return
+  }
+  list.innerHTML = ""
+
+  if (settings.savedAccents.length === 0) {
+    const empty = document.createElement("p")
+    empty.className = "saved-accents__empty"
+    empty.textContent = "No saved colors yet — pick one above, then tap +"
+    list.appendChild(empty)
+    return
+  }
+
+  for (const hex of settings.savedAccents) {
+    const wrap = document.createElement("div")
+    wrap.className = "saved-accent"
+
+    const swatch = document.createElement("button")
+    swatch.type = "button"
+    swatch.className = "saved-accent__swatch"
+    swatch.style.background = hex
+    swatch.setAttribute("aria-label", `Use ${hex}`)
+    swatch.classList.toggle("is-active", settings.theme === "custom" && settings.customColor === hex)
+    swatch.addEventListener("click", () => applyCustomColor(hex))
+
+    const remove = document.createElement("button")
+    remove.type = "button"
+    remove.className = "saved-accent__remove"
+    remove.setAttribute("aria-label", `Remove ${hex}`)
+    remove.textContent = "×"
+    remove.addEventListener("click", (event) => {
+      event.stopPropagation()
+      settings = { ...settings, savedAccents: settings.savedAccents.filter((c) => c !== hex) }
+      saveSettings(settings)
+      renderSavedAccents()
+    })
+
+    wrap.appendChild(swatch)
+    wrap.appendChild(remove)
+    list.appendChild(wrap)
+  }
+}
+
+let settings = loadSettings()
+
+let history = loadHistory()
+
+function renderHistory(): void {
+  const list = document.querySelector<HTMLUListElement>("#historyList")
+  if (list === null) {
+    return
+  }
+  list.innerHTML = ""
+
+  if (history.length === 0) {
+    const empty = document.createElement("li")
+    empty.className = "history__empty"
+    empty.textContent = "No calculations yet"
+    list.appendChild(empty)
+    return
+  }
+
+  for (const entry of history) {
+    const item = document.createElement("li")
+    item.className = "history__item"
+    item.tabIndex = 0
+
+    const expr = document.createElement("span")
+    expr.className = "history__expr"
+    expr.textContent = prettyExpression(entry.expression)
+
+    const res = document.createElement("span")
+    res.className = "history__res"
+    res.textContent = "= " + formatNumber(entry.result, settings.precision)
+
+    item.appendChild(expr)
+    item.appendChild(res)
+
+    item.addEventListener("click", () => loadFromHistory(entry))
+    item.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault()
+        loadFromHistory(entry)
+      }
+    })
+
+    list.appendChild(item)
+  }
+}
+
+function loadFromHistory(entry: HistoryEntry): void {
+  currentExpression = entry.result
+  openParenCount = recalcParenCount(currentExpression)
+  expectOperand = recalcExpectOperand(currentExpression)
+  updateDisplay(currentExpression)
+  switchView("calculate")
+}
+
+function pushHistory(expression: string, result: string): void {
+  history = [{ expression, result }, ...history].slice(0, 50)
+  saveHistory(history)
+  renderHistory()
+}
+
+// View switching (Calculate / History / Settings)
+type ViewName = "calculate" | "history" | "settings"
+
+function switchView(view: ViewName): void {
+  document.querySelectorAll<HTMLElement>(".view").forEach((section) => {
+    section.hidden = section.dataset["view"] !== view
+  })
+  document.querySelectorAll<HTMLButtonElement>(".rail__item").forEach((item) => {
+    item.classList.toggle("is-active", item.dataset["view"] === view)
+  })
+  if (view === "history") {
+    renderHistory()
+  }
+}
+
+document.querySelectorAll<HTMLButtonElement>(".rail__item").forEach((item) => {
+  item.addEventListener("click", () => {
+    const view = item.dataset["view"]
+    if (view === "calculate" || view === "history" || view === "settings") {
+      switchView(view)
+    }
+  })
+})
+
+document.querySelector<HTMLButtonElement>("#historyClear")?.addEventListener("click", () => {
+  history = []
+  saveHistory(history)
+  renderHistory()
+})
+
+document.querySelectorAll<HTMLButtonElement>(".settings__options button.chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    const value = chip.dataset["value"]
+    if (value === undefined) {
+      return
+    }
+    settings = { ...settings, theme: value as Theme }
+    saveSettings(settings)
+    applySettings()
+  })
+})
+
+document.querySelector<HTMLInputElement>("#customColorInput")?.addEventListener("input", (event) => {
+  const input = event.currentTarget as HTMLInputElement
+  applyCustomColor(input.value)
+})
+
+document.querySelector<HTMLButtonElement>("#saveAccentBtn")?.addEventListener("click", () => {
+  const hex = settings.customColor
+  if (settings.savedAccents.includes(hex)) {
+    return
+  }
+  const next = [hex, ...settings.savedAccents].slice(0, MAX_SAVED_ACCENTS)
+  settings = { ...settings, savedAccents: next }
+  saveSettings(settings)
+  renderSavedAccents()
+})
+
+document.querySelector<HTMLSelectElement>("#precisionSelect")?.addEventListener("change", (event) => {
+  const select = event.currentTarget as HTMLSelectElement
+  settings = { ...settings, precision: select.value as Precision }
+  saveSettings(settings)
+  if (showingResult && display !== null) {
+    display.value = formatNumber(currentExpression, settings.precision)
+  }
+})
+
+applySettings()
+renderHistory()
+renderSavedAccents()
 
 buttons.forEach((btn) => {
   const value = btn.dataset["value"]
@@ -181,6 +404,7 @@ buttons.forEach((btn) => {
       expectOperand = true
       openParenCount = 0
       updateDisplay(currentExpression)
+      clearTrail()
     })
   } else if (action === "delete") {
     // Delete button
@@ -199,12 +423,25 @@ buttons.forEach((btn) => {
 
       try {
         const result = evaluateExpression(currentExpression)
+        const solvedExpression = currentExpression
         currentExpression = String(result)
         expectOperand = false
         openParenCount = 0
         updateDisplay(currentExpression)
+
+        // Promote the just-solved expression to the small trail line and
+        // show a nicely formatted result on the big line.
+        if (expressionTrail !== null) {
+          expressionTrail.textContent = prettyExpression(solvedExpression)
+        }
+        if (display !== null) {
+          display.value = formatNumber(currentExpression, settings.precision)
+        }
+        showingResult = true
+        pushHistory(solvedExpression, currentExpression)
       } catch (error) {
         updateDisplay("Error")
+        clearTrail()
         currentExpression = ""
         expectOperand = true
         openParenCount = 0
@@ -228,6 +465,14 @@ function clickButtonByAction(action: string): void {
 }
 
 document.addEventListener("keydown", (event) => {
+  const active = document.activeElement
+  const isFormField =
+    active !== null &&
+    (active.tagName === "INPUT" || active.tagName === "SELECT" || active.tagName === "TEXTAREA")
+  if (isFormField) {
+    return
+  }
+
   const key = event.key
 
   if (/^[0-9]$/.test(key)) {

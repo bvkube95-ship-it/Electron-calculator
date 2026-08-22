@@ -523,10 +523,47 @@ p {
   border-color: var(--accent-300);
   color: #fff;
 }
+.precision-select-wrap {
+  position: relative;
+  display: inline-block;
+}
+.precision-select-wrap::after {
+  content: "▾";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent-300);
+  pointer-events: none;
+  font-size: 10px;
+}
+.precision-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 84px;
+  border: 1.4px solid rgba(127, 216, 255, 0.35);
+  background: var(--key-navy);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 24px 7px 10px;
+  cursor: pointer;
+}
+.precision-select:focus {
+  border-color: var(--accent-300);
+  outline: none;
+}
+.precision-select option {
+  background: var(--key-navy);
+  color: #fff;
+}
 .chip--blue,
 .chip--red,
 .chip--violet,
-.chip--teal {
+.chip--teal,
+.chip--custom {
   width: 26px;
   height: 26px;
   min-width: 0;
@@ -548,7 +585,96 @@ p {
 .chip--blue.is-active,
 .chip--red.is-active,
 .chip--violet.is-active,
-.chip--teal.is-active {
+.chip--teal.is-active,
+.chip--custom.is-active {
   outline: 2px solid #fff;
   outline-offset: 2px;
+}
+.chip--custom {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1.4px solid rgba(127, 216, 255, 0.6);
+  background: conic-gradient(#ff3b30, #ffcc00, #34c759, #30b0ff, #7b3ff2, #ff3b30);
+}
+.chip--custom input[type="color"] {
+  position: absolute;
+  inset: -6px;
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.chip--add {
+  width: 26px;
+  height: 26px;
+  min-width: 0;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.4px dashed rgba(127, 216, 255, 0.55);
+  background: transparent;
+  color: var(--accent-300);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chip--add:hover {
+  background: rgba(127, 216, 255, 0.12);
+  border-style: solid;
+}
+.saved-accents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 10px;
+  padding-top: 2px;
+}
+.saved-accents__empty {
+  font-size: 12px;
+  font-style: italic;
+  color: #6f7a94;
+}
+.saved-accent {
+  position: relative;
+}
+.saved-accent__swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  padding: 0;
+  border: 1.4px solid rgba(127, 216, 255, 0.35);
+  cursor: pointer;
+}
+.saved-accent__swatch.is-active {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.saved-accent__remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  padding: 0;
+  border: 1px solid var(--ink-panel);
+  background: var(--alert);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  cursor: pointer;
+}
+.saved-accent:hover .saved-accent__remove,
+.saved-accent__remove:focus-visible {
+  opacity: 1;
 }
