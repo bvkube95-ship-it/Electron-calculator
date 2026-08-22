@@ -7,6 +7,15 @@ import {
   recalcParenCount
 } from "./renderer/expression.js"
 import { formatNumber, prettyExpression } from "./renderer/formatting.js"
+import {
+  buildCustomPaletteForRenderer,
+  loadSettings,
+  MAX_SAVED_ACCENTS,
+  saveSettings,
+  type Precision,
+  type Settings,
+  type Theme
+} from "./renderer/settings.js"
 
 const display = document.querySelector<HTMLInputElement>("#display")
 const buttons = document.querySelectorAll<HTMLButtonElement>(".btn")

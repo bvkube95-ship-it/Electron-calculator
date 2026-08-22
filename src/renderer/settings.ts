@@ -135,7 +135,7 @@ export function loadSettings(): Settings {
     }
 }
 
-export function saveFromSettings(settings: Settings): void {
+export function saveSettings(settings: Settings): void {
     try {
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
     } catch {
