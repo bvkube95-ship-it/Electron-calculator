@@ -85,6 +85,17 @@ function clearTrail(): void {
   }
 }
 
+function startFresh(): void {
+  if (!showingResult) {
+    return
+  }
+
+  openParenCount = 0
+  showingResult = false
+  currentExpression = ""
+  expectOperand = true
+}
+
 // Settings (persisted to localStorage)
 function applySettings(): void {
   const app = document.querySelector<HTMLElement>(".app")
@@ -317,6 +328,7 @@ buttons.forEach((btn) => {
   if (value !== undefined && !btn.classList.contains("operator") && !btn.classList.contains("paren")) {
     // numbers and dots
     btn.addEventListener("click", () => {
+      startFresh()
       const lastChar = currentExpression[currentExpression.length - 1]
       // for dots
       if (value === ".") {
@@ -420,6 +432,7 @@ buttons.forEach((btn) => {
   } else if (value === "(" && btn.classList.contains("paren")) {
     // open paren
     btn.addEventListener("click", () => {
+      startFresh()
       const lastChar = currentExpression[currentExpression.length - 1]
       if (lastChar === ".") return
 
