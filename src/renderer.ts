@@ -27,12 +27,56 @@ let expectOperand = true
 let openParenCount = 0
 let showingResult = false
 
+const DISPLAY_MIN_FONT_SIZE = 18
+// Small buffer so the skewed text never grazes the display's edge.
+const DISPLAY_WIDTH_SAFETY_MARGIN = 6
+
+// Reused off-screen canvas for measuring text width. Far more reliable than
+// input.scrollWidth, which browsers do not consistently update to reflect
+// overflow for <input> elements the way they do for plain block elements.
+const measureCanvas = document.createElement("canvas")
+const measureCtx = measureCanvas.getContext("2d")
+
+// Sizes the result display's font to whatever fits on one line: shrinks
+// long numbers/expressions down, and — just as importantly — grows back up
+// to the normal size as soon as the value is short enough again (e.g. after
+// pressing Clear).
+function fitDisplayFont(): void {
+  if (display === null || measureCtx === null) {
+    return
+  }
+
+  // Always start from the CSS-defined baseline size (the responsive
+  // clamp), so previous shrinking never lingers once it's no longer needed.
+  display.style.removeProperty("font-size")
+  const computed = getComputedStyle(display)
+  const baseFontSize = parseFloat(computed.fontSize)
+  const availableWidth = display.clientWidth - DISPLAY_WIDTH_SAFETY_MARGIN
+
+  if (!Number.isFinite(baseFontSize) || availableWidth <= 0) {
+    return
+  }
+
+  measureCtx.font = `${computed.fontWeight} ${baseFontSize}px ${computed.fontFamily}`
+  const textWidth = measureCtx.measureText(display.value).width
+
+  if (textWidth <= availableWidth) {
+    // Fits at the normal size already — leave the CSS size in place.
+    return
+  }
+
+  const scale = availableWidth / textWidth
+  const fittedFontSize = Math.max(DISPLAY_MIN_FONT_SIZE, Math.floor(baseFontSize * scale))
+  display.style.fontSize = `${fittedFontSize}px`
+}
+
 function updateDisplay(value: string): void {
   if (display === null) {
     return
   }
   display.value = value === "" ? "0" : prettyExpression(value)
   showingResult = false
+  fitDisplayFont()
 }
 
 function clearTrail(): void {
@@ -256,8 +300,11 @@ document.querySelector<HTMLSelectElement>("#precisionSelect")?.addEventListener(
   saveSettings(settings)
   if (showingResult && display !== null) {
     display.value = formatNumber(currentExpression, settings.precision)
+    fitDisplayFont()
   }
 })
+
+window.addEventListener("resize", fitDisplayFont)
 
 applySettings()
 renderHistory()
@@ -429,13 +476,13 @@ buttons.forEach((btn) => {
         openParenCount = 0
         updateDisplay(currentExpression)
 
-        // Promote the just-solved expression to the small trail line and
-        // show a nicely formatted result on the big line.
+        // Promote the just-solved expression to the small trail above
         if (expressionTrail !== null) {
           expressionTrail.textContent = prettyExpression(solvedExpression)
         }
         if (display !== null) {
           display.value = formatNumber(currentExpression, settings.precision)
+          fitDisplayFont()
         }
         showingResult = true
         pushHistory(solvedExpression, currentExpression)

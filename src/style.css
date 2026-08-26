@@ -251,6 +251,8 @@ p {
 .display__result {
   display: block;
   width: 100%;
+  height: clamp(46px, 13vw, 64px);
+  line-height: clamp(46px, 13vw, 64px);
   border: 0;
   background: transparent;
   text-align: right;
