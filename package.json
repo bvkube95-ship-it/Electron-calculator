@@ -1,12 +1,13 @@
 {
   "name": "electron-calculator",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Electron calculator",
+  "main": "dist/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.main.json && node copy-assets.js",
-    "start": "npm run build && electron ./dist/main.js"
+    "start": "npm run build && electron ./dist/main.js",
+    "dist:win": "npm run build && electron-builder --win"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,18 @@
   "devDependencies": {
     "@types/node": "^26.1.2",
     "electron": "^43.2.0",
+    "electron-builder": "^26.0.0",
     "typescript": "^7.0.2"
+  },
+  "build": {
+    "appId": "com.electron.calculator",
+    "productName": "Calculator",
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }
