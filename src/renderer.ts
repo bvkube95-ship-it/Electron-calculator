@@ -249,8 +249,10 @@ function pushHistory(expression: string, result: string): void {
 
 // View switching (Calculate / History / Settings)
 type ViewName = "calculate" | "history" | "settings"
+let currentView: ViewName = "calculate"
 
 function switchView(view: ViewName): void {
+  currentView = view
   document.querySelectorAll<HTMLElement>(".view").forEach((section) => {
     section.hidden = section.dataset["view"] !== view
   })
@@ -525,6 +527,9 @@ function clickButtonByAction(action: string): void {
 }
 
 document.addEventListener("keydown", (event) => {
+  if (currentView !== "calculate") {
+    return
+  }
   const active = document.activeElement
   const isFormField =
     active !== null &&
