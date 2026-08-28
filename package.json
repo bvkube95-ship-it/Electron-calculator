@@ -4,11 +4,12 @@
   "description": "Electron calculator",
   "main": "dist/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.main.json && node copy-assets.js",
-    "start": "npm run build && electron ./dist/main.js",
-    "dist:win": "npm run build && electron-builder --win"
-  },
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "build": "tsc -p tsconfig.json && tsc -p tsconfig.main.json && node copy-assets.js",
+  "start": "npm run build && electron ./dist/main.js",
+  "dist:win": "npm run build && electron-builder --win",
+  "dist:mac": "npm run build && electron-builder --mac"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -27,7 +28,10 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
-    }
+      "target": "nsis",
+      "icon": "build/icons/icon.ico"
+    },
+    "mac": { "icon": "build/icons/icon.icns" },
+    "linux": { "icon": "build/icons/icon.png" }
   }
 }
